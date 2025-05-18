@@ -1,5 +1,5 @@
 #!/bin/sh
-# Last Modified 2025-02-12
+# Last Modified 2025-05-16
 #
 # Script used to start all UPS NUT services.
 #
@@ -15,7 +15,7 @@
 # Kernel Modules Required
 # AC86U, AX88U
 #	input-core.ko, hid.ko, usbhid.ko
-# AX86U Pro
+# AX86U Pro (seems that these modules are no longer required in 388.8_4)
 #	usbcore.ko, usbhid.ko
 #
 # Revision
@@ -23,6 +23,7 @@
 #     2024-12-24 - Modified required kernel modules to make NUT work on the AX86U Pro
 #	  2025-02-12 - Added command to turn off beeper
 #	  2025-03-14 - Added debuging to upsdrvctl command, and run command regradless
+#	  2025-05-16 - Loading of extra kernel modules seems no longer required - removed
 ######################################################################################################
 
 
@@ -39,7 +40,6 @@ USER=""
 PASS=""
 PDFLAG=""
 SYSUSER=""
-KERNALPASS="TRUE"
 
 Start() {
 	readonly KERN=$(uname -r)
@@ -57,15 +57,6 @@ Start() {
 	{
 		echo "----------------------------------------------------------------------------"
 
-		if [ $(find /lib -name usbcore.ko | wc -l) -eq 0 ]; then KERNALPASS="FALSE";fi
-		if [ $(find /lib -name usbhid.ko | wc -l) -eq 0 ]; then KERNALPASS="FALSE";fi
-	
-		if [ "$KERNALPASS" = "FALSE" ];then	
-			echo "$(date):  Aborting NUT setup - one or more required kernel modules do not exist"
-			echo "----------------------------------------------------------------------------"
-			return 1
-		fi
-	
 		echo "$(date):  Starting NUT Services (system startup Script)"
 
 		if [ -f "$PDFLAG" ]; then
@@ -73,10 +64,6 @@ Start() {
 			rm "$PDFLAG"
 		fi
 
-		modprobe usbcore
-#		modprobe hid
-		modprobe usbhid
-	
 		echo 
 		echo "Executing upsdrvctl command with SYSUSER as ${SYSUSER}"
 		upsdrvctl -D -u ${SYSUSER} start
@@ -136,7 +123,7 @@ Stop() {
 	else
 		echo -e "Process upsmon is already dead"
 	fi
-
+	
 }
 
 Check() {
